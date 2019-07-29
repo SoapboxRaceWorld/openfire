@@ -194,7 +194,9 @@ public class SASLAuthentication {
      */
     public static String getSASLMechanisms( LocalSession session )
     {
-        if ( session instanceof ClientSession )
+        // MOD apex
+        return "";
+        /*if ( session instanceof ClientSession )
         {
             return getSASLMechanismsElement( (ClientSession) session ).asXML();
         }
@@ -206,7 +208,7 @@ public class SASLAuthentication {
         {
             Log.debug( "Unable to determine SASL mechanisms that are applicable to session '{}'. Unrecognized session type.", session );
             return "";
-        }
+        }*/
     }
 
     public static Element getSASLMechanismsElement( ClientSession session )
