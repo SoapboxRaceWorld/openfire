@@ -16,25 +16,6 @@
 
 package org.jivesoftware.openfire.net;
 
-import java.security.Security;
-import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
-
-import javax.security.sasl.Sasl;
-import javax.security.sasl.SaslException;
-import javax.security.sasl.SaslServer;
-import javax.security.sasl.SaslServerFactory;
-
 import org.dom4j.DocumentHelper;
 import org.dom4j.Element;
 import org.dom4j.Namespace;
@@ -51,17 +32,22 @@ import org.jivesoftware.openfire.sasl.AnonymousSaslServer;
 import org.jivesoftware.openfire.sasl.Failure;
 import org.jivesoftware.openfire.sasl.JiveSharedSecretSaslServer;
 import org.jivesoftware.openfire.sasl.SaslFailureException;
-import org.jivesoftware.openfire.session.ClientSession;
-import org.jivesoftware.openfire.session.ConnectionSettings;
-import org.jivesoftware.openfire.session.IncomingServerSession;
-import org.jivesoftware.openfire.session.LocalClientSession;
-import org.jivesoftware.openfire.session.LocalIncomingServerSession;
-import org.jivesoftware.openfire.session.LocalSession;
-import org.jivesoftware.openfire.session.Session;
+import org.jivesoftware.openfire.session.*;
 import org.jivesoftware.openfire.spi.ConnectionType;
 import org.jivesoftware.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmlpull.v1.XmlPullParser;
+
+import javax.security.sasl.Sasl;
+import javax.security.sasl.SaslException;
+import javax.security.sasl.SaslServer;
+import javax.security.sasl.SaslServerFactory;
+import java.security.Security;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * SASLAuthentication is responsible for returning the available SASL mechanisms to use and for
@@ -195,7 +181,44 @@ public class SASLAuthentication {
     public static String getSASLMechanisms( LocalSession session )
     {
         // MOD apex
-        return "";
+        if ( session instanceof ClientSession )
+        {
+            if (!session.isForceStandardSASL())
+                return "";
+
+            return getSASLMechanismsElement( (ClientSession) session ).asXML();
+        }
+        else if ( session instanceof LocalIncomingServerSession )
+        {
+            return getSASLMechanismsElement( (LocalIncomingServerSession) session ).asXML();
+        }
+        else
+        {
+            Log.debug( "Unable to determine SASL mechanisms that are applicable to session '{}'. Unrecognized session type.", session );
+            return "";
+        }
+    }
+
+    /**
+     * Returns a string with the valid SASL mechanisms available for the specified session. If
+     * the session's connection is not secured then only include the SASL mechanisms that don't
+     * require TLS.
+     *
+     * @param session The current session
+     *
+     * @return a string with the valid SASL mechanisms available for the specified session.
+     */
+    public static String getSASLMechanisms(LocalSession session, XmlPullParser xpp)
+    {
+        // MOD apex
+
+        String from = xpp.getAttributeValue("", "from");
+
+        if (from != null) {
+            session.setForceStandardSASL(from.contains(".engine.engine"));
+        }
+
+        return getSASLMechanisms(session);
         /*if ( session instanceof ClientSession )
         {
             return getSASLMechanismsElement( (ClientSession) session ).asXML();

@@ -375,7 +375,7 @@ public class LocalClientSession extends LocalSession implements ClientSession {
             sb.append("</starttls>");
         }
         // Include available SASL Mechanisms
-        sb.append(SASLAuthentication.getSASLMechanisms(session));
+        sb.append(SASLAuthentication.getSASLMechanisms(session, xpp));
         // Include Stream features
         String specificFeatures = session.getAvailableStreamFeatures();
         if (specificFeatures != null) {

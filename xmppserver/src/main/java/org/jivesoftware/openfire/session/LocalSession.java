@@ -68,6 +68,8 @@ public abstract class LocalSession implements Session {
      */
     private StreamID streamID;
 
+    private boolean forceStandardSASL = false;
+
     /**
      * The current session status.
      */
@@ -542,4 +544,11 @@ public abstract class LocalSession implements Session {
         softwareVersionData.put(key, value);
     }
 
+    public boolean isForceStandardSASL() {
+        return forceStandardSASL;
+    }
+
+    public void setForceStandardSASL(boolean forceStandardSASL) {
+        this.forceStandardSASL = forceStandardSASL;
+    }
 }
